@@ -1,83 +1,96 @@
-Phase 1 & 2: The Brain (Setup & Model)
+# Phase 1 & 2: The Brain (Setup & Model)
 
 Goal: We need an AI model running on our "Colony Hardware" (your laptop) that doesn't depend on Earth (Internet). We will not just download it; we will optimize it using Microsoft Olive.
 
-Step 1: Install the Runtime
+## Step 1: Install the Runtime
 
-We need Azure AI Foundry Local, a tool that creates a local API endpoint compatible with OpenAI's standards.
+We need Foundry Local, a tool that creates a local API endpoint compatible with OpenAI's standards.
 
-Windows:
+**Windows:**
 
-`winget install Microsoft.FoundryLocal`
-
-
-MacOS:
-
-`brew tap microsoft/foundrylocal`
-`brew install foundrylocal`
+```
+winget install Microsoft.FoundryLocal
+```
 
 
-Verification: Open a new terminal and type foundry --version. You should see the version output.
+**MacOS:**
 
-Step 2: Install The Optimizer (Olive)
+```
+brew tap microsoft/foundrylocal
+brew install foundrylocal
+```
 
-We use Olive to make the model smaller and faster (Quantization).
+  *Verification:* Open a new terminal and type foundry --version. You should see the version output.
 
-Create a folder for your workshop: mkdir MarsColony && cd MarsColony
+## Step 2: Install The Optimizer (Olive)
 
-Create a virtual environment (Recommended):
+We use **Olive** to make the model smaller and faster (Quantization).
 
-`python -m venv .venv
+1. Create a folder for your workshop: `mkdir MarsColony && cd MarsColony`
+
+2. Create a virtual environment (Recommended):
+
+```
+python -m venv .venv
 source .venv/bin/activate  # Mac/Linux
 .venv\Scripts\activate     # Windows
-`
+
+```
 
 
-Install Olive and ONNX Runtime:
+3. Install Olive and ONNX Runtime:
 
-`pip install olive-ai[cpu] onnxruntime huggingface_hub`
+```
+pip install olive-ai[cpu] onnxruntime huggingface_hub
+```
 
 
-Step 3: Download & Optimize the Model
+## Step 3: Download & Optimize the Model
 
-We will use Qwen2.5-1.5B-Instruct. It is a high-performance Small Language Model (SLM) perfect for edge devices.
+We will use `Qwen2.5-1.5B-Instruct`. It is a high-performance Small Language Model (SLM) perfect for edge devices.
 
-Run the optimization command:
-(This downloads the model from Hugging Face, converts it to ONNX, and quantizes it to INT4 precision).
+1. **Run the optimization command:**
+*(This downloads the model from Hugging Face, converts it to ONNX, and quantizes it to INT4 precision).*
 
-`olive auto-opt \
+```
+olive auto-opt \
   --model_name_or_path Qwen/Qwen2.5-1.5B-Instruct \
   --output_path models/mars-brain \
   --device cpu \
-  --precision int4`
+  --precision int4
+```
 
 
-☕ Coffee Break: This process takes about 3-5 minutes depending on your internet and CPU.
+☕ *Coffee Break:* This process takes about 3-5 minutes depending on your internet and CPU.
 
-Step 4: Create the Chat Template
+## Step 4: Create the Chat Template
 
 Foundry needs to know how to talk to this specific model.
 
-Navigate to your new model folder: models/mars-brain/model (or similar path created by Olive).
+1. Navigate to your new model folder: `models/mars-brain/model` (or similar path created by Olive).
 
-Create a file named inference_model.json inside that folder.
+2. Create a file named `inference_model.json` inside that folder.
 
-Paste this content:
+3. Paste this content:
 
-`{
+```
+{
   "name": "mars-brain",
   "chat_template": "{% for message in messages %}{{'<|im_start|>' + message['role'] + '\n' + message['content'] + '<|im_end|>\n'}}{% endfor %}{% if add_generation_prompt %}{{ '<|im_start|>assistant\n' }}{% endif %}"
-}`
+}
+```
 
 
-Step 5: Ignition
+## Step 5: Ignition
 
 Start the model server.
 
+```
 # Run this from your main MarsColony folder
-`foundry model run models/mars-brain/model`
+foundry model run models/mars-brain/model
+```
 
 
-Success Criteria:
-You should see output indicating the server is running at http://localhost:xxxx/v1.
-Keep this terminal open! This is your brain.
+**Success Criteria:**
+You should see output indicating the server is running at `http://localhost:xxxx/v1`.
+*Keep this terminal open! This is your brain.* 
